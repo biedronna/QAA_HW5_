@@ -1,0 +1,29 @@
+config:
+  target: "https://lordicon.com"  #api wybrane z listy
+  phases:
+    - duration: 5   #czas trwania testu :5s
+      arrivalRate: 5  # 5 użytkowników na sekundę 
+      name: Test
+  payload:
+    - path: "keywords.csv"      #plik z loginami i hasłami 
+      fields:
+        - "login"
+        - "password"  
+      order: sequence  
+  plugins:
+    ensure: {}
+  ensure:            #sprawdzenie metryk końcowych:
+    conditions:
+      - expression: vusers.failed == 0      # sprawdzenie, czy dla wszystkich użytkowników zakończone powodzeniem 
+      - expression: http.request_rate >= 2  # czy wykonane oba żądania 
+      - expression: http.response_time.max < 500  # maksymalny czas odpowiedzi <500 ms 
+scenarios:
+  - name: Getting a resource
+    flow:
+      - get:
+          url: "{{ target }}/"
+      - post:
+          url: "{{ target }}/login"
+          json:                               #konwertowanie loginu i hasła w formacie json 
+            login: "Test User"
+            password: "Temp Password"
